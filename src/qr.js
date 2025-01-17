@@ -1,11 +1,7 @@
-import { BrowserMultiFormatReader } from '@zxing/library';
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
 
 window.addEventListener('DOMContentLoaded', () => {
-    console.log('init');
-
     const scannerElement = document.querySelector('#scanner');
-    const startButton = document.createElement('button');
-    const stopButton = document.createElement('button');
     const resultWrapper = document.querySelector('#result');
 
     if (!scannerElement) {
@@ -13,69 +9,38 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Создание кнопки "Начать сканирование"
-    startButton.textContent = 'Начать сканирование';
-    startButton.style.marginRight = '10px';
+    const formats = [BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX];
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
 
-    // Создание кнопки "Остановить сканирование"
-    stopButton.textContent = 'Остановить сканирование';
-    stopButton.disabled = true;
+    const codeReader = new BrowserMultiFormatReader();
+    codeReader.setHints(hints);
 
-    scannerElement.appendChild(startButton);
-    scannerElement.appendChild(stopButton);
+    const constraints = {
+        video: { facingMode: 'environment' },
+    };
 
-    let codeReader = new BrowserMultiFormatReader();
-    let currentStream = null;
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+            const videoElement = document.createElement('video');
+            videoElement.style.width = '100%';
+            videoElement.style.height = '100%';
+            videoElement.srcObject = stream;
+            videoElement.setAttribute('playsinline', true);
+            videoElement.play();
+            scannerElement.appendChild(videoElement);
 
-    startButton.addEventListener('click', () => {
-        const constraints = {
-            video: {
-                facingMode: 'environment', // Использование задней камеры
-            },
-        };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then((stream) => {
-                const videoElement = document.createElement('video');
-                videoElement.style.width = '100%';
-                videoElement.style.height = '100%';
-                videoElement.srcObject = stream;
-                videoElement.setAttribute('playsinline', true); // Отключение полноэкранного режима на iOS
-                videoElement.play();
-                scannerElement.appendChild(videoElement);
-
-                currentStream = stream;
-
-                // Чтение кода с видеопотока
-                codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
-                    if (result) {
-                        console.log('Считан DataMatrix-код:', result.text);
-                        resultWrapper.textContent = `Результат: ${result.text}`;
-                    }
-                    if (error && !(error instanceof zxing.NotFoundException)) {
-                        console.error('Ошибка сканирования:', error);
-                    }
-                });
-
-                startButton.disabled = true;
-                stopButton.disabled = false;
-            })
-            .catch((error) => {
-                console.error('Ошибка доступа к камере:', error);
+            codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
+                if (result) {
+                    console.log('Распознанный код:', result.text);
+                    resultWrapper.textContent = `Результат: ${result.text}`;
+                }
+                if (error && !(error instanceof zxing.NotFoundException)) {
+                    console.error('Ошибка сканирования:', error);
+                }
             });
-    });
-
-    stopButton.addEventListener('click', () => {
-        if (codeReader) {
-            codeReader.reset();
-        }
-        if (currentStream) {
-            currentStream.getTracks().forEach((track) => track.stop());
-        }
-        scannerElement.querySelectorAll('video').forEach((video) => video.remove());
-        console.log('Сканирование остановлено');
-
-        startButton.disabled = false;
-        stopButton.disabled = true;
-    });
+        })
+        .catch((error) => {
+            console.error('Ошибка доступа к камере:', error);
+        });
 });
