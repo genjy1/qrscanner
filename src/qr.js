@@ -1,63 +1,36 @@
-        // Проверяем поддержку Barcode Detection API
-        if (!('BarcodeDetector' in window)) {
-            alert('Barcode Detection API не поддерживается в этом браузере.');
-        } else {
-            const video = document.getElementById('video');
-            const resultElement = document.getElementById('result');
-            const stopButton = document.getElementById('stop');
-            let stream;
+export async function startBarcodeScanner(videoElement, resultElement) {
+    if (!('BarcodeDetector' in window)) {
+        console.error('Barcode Detection API не поддерживается в этом браузере.');
+        resultElement.textContent = 'API не поддерживается.';
+        return;
+    }
 
-            // Инициализация BarcodeDetector
-            const barcodeDetector = new BarcodeDetector({
-                formats: ['data_matrix'], // Указываем формат DataMatrix
-            });
+    resultElement.textContent = await BarcodeDetector.getSupportedFormats();
 
-            // Функция для запуска камеры
-            async function startCamera() {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: 'environment' }, // Используем заднюю камеру
-                    });
-                    video.srcObject = stream;
-                    video.play();
+    const barcodeDetector = new BarcodeDetector({
+        formats: ['data_matrix'], // Распознавание DataMatrix
+    });
 
-                    // Начинаем распознавание
-                    detectBarcode();
-                } catch (error) {
-                    console.error('Ошибка доступа к камере:', error);
-                    alert('Не удалось получить доступ к камере.');
-                }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' },
+        });
+
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        // Начинаем сканирование
+        while (true) {
+            const barcodes = await barcodeDetector.detect(videoElement);
+            if (barcodes.length > 0) {
+                resultElement.textContent = `Распознан код: ${barcodes[0].rawValue}`;
+                console.log('Распознан код:', barcodes[0]);
+                break; // Прерываем после первого найденного кода
             }
-
-            // Функция для распознавания DataMatrix кодов
-            async function detectBarcode() {
-                try {
-                    while (stream && stream.active) {
-                        const barcodes = await barcodeDetector.detect(video);
-                        if (barcodes.length > 0) {
-                            resultElement.textContent = `Распознан код: ${barcodes[0].rawValue}`;
-                            console.log('Детали:', barcodes[0]);
-                            break; // Останавливаем сканирование после распознавания
-                        }
-                        await new Promise((resolve) => setTimeout(resolve, 100)); // Ожидание перед следующим кадром
-                    }
-                } catch (error) {
-                    console.error('Ошибка распознавания:', error);
-                }
-            }
-
-            // Остановка камеры
-            function stopCamera() {
-                if (stream) {
-                    stream.getTracks().forEach((track) => track.stop());
-                    video.srcObject = null;
-                    resultElement.textContent = 'Сканирование остановлено.';
-                }
-            }
-
-            // Обработчик для кнопки остановки
-            stopButton.addEventListener('click', stopCamera);
-
-            // Запускаем камеру
-            startCamera();
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Пауза между проверками
         }
+    } catch (error) {
+        console.error('Ошибка работы камеры:', error);
+        resultElement.textContent = 'Ошибка доступа к камере.';
+    }
+}

@@ -1,18 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app">
-      <video id="video" autoplay playsinline></video>
-      <p id="result">Результат будет здесь...</p>
-      <button id="stop">Остановить сканирование</button>
-      
-    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Scanner</title>
+</head>
+<body>
+    <h1>Сканер DataMatrix</h1>
+    <video id="video" autoplay playsinline style="width: 100%; height: auto; border: 1px solid black;"></video>
+    <p id="result">Результат будет отображаться здесь...</p>
+    <button id="startScan">Начать сканирование</button>
     <script type="module" src="/src/main.js"></script>
-  </body>
+</body>
 </html>
