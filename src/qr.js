@@ -1,14 +1,12 @@
 import { BrowserMultiFormatReader } from '@zxing/library';
 
 window.addEventListener('DOMContentLoaded', () => {
-
     console.log('init');
-    
 
     const scannerElement = document.querySelector('#scanner');
     const startButton = document.createElement('button');
     const stopButton = document.createElement('button');
-    const resultWrapper = document.querySelector('#result')
+    const resultWrapper = document.querySelector('#result');
 
     if (!scannerElement) {
         console.error('Элемент #scanner не найден.');
@@ -52,9 +50,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
                     if (result) {
                         console.log('Считан DataMatrix-код:', result.text);
-                        // alert(`DataMatrix-код: ${result.text}`);
-                        resultWrapper.textContent = result
-
+                        resultWrapper.textContent = `Результат: ${result.text}`;
                     }
                     if (error && !(error instanceof zxing.NotFoundException)) {
                         console.error('Ошибка сканирования:', error);
