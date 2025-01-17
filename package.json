@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@zxing/library": "^0.21.3",
+    "gl-matrix": "^3.4.3",
     "quagga": "^0.6.16"
   }
 }
