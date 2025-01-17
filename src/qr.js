@@ -1,70 +1,29 @@
-import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
+import { Quagga } from "quagga";
 
-window.addEventListener('DOMContentLoaded', () => {
-    const scannerElement = document.querySelector('#scanner');
-    const resultWrapper = document.querySelector('#result');
-
-    if (!scannerElement) {
-        console.error('Элемент #scanner не найден.');
-        return;
+Quagga.init(
+    {
+        inputStream: {
+            type: 'LiveStream',
+            target: document.querySelector('#scanner'),
+            constraints: {
+                facingMode: 'environment', // Использование задней камеры
+            },
+        },
+        decoder: {
+            readers: ['code_128_reader', 'ean_reader'], // Добавьте тип вашего линейного кода
+        },
+    },
+    (err) => {
+        if (err) {
+            console.error('Ошибка инициализации Quagga:', err);
+            return;
+        }
+        console.log('Quagga инициализирован');
+        Quagga.start();
     }
+);
 
-    if (!resultWrapper) {
-        console.error('Элемент #result не найден.');
-        return;
-    }
-
-    // Указываем форматы для чтения (QR-код и DataMatrix)
-    const formats = [BarcodeFormat.DATA_MATRIX, BarcodeFormat.QR_CODE];
-    const hints = new Map();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
-
-    // Инициализация сканера
-    const codeReader = new BrowserMultiFormatReader(hints);
-
-    // Настройки камеры
-    const constraints = {
-        video: { facingMode: 'environment' }, // Используем заднюю камеру
-    };
-
-    // Запуск видеопотока
-    navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then((stream) => {
-            const videoElement = document.createElement('video');
-            videoElement.style.width = '100%';
-            videoElement.style.height = '100%';
-            videoElement.srcObject = stream;
-            videoElement.setAttribute('playsinline', true); // Отключение полноэкранного режима на iOS
-            videoElement.play();
-            scannerElement.appendChild(videoElement);
-
-            // Начало декодирования видеопотока
-            codeReader.decodeFromVideoDevice(
-                null,
-                videoElement,
-                (result, error) => {
-                    if (result) {
-                        console.log('Считан код:', result.text);
-                        resultWrapper.textContent = `Результат: ${result.text}`;
-                    }
-                    if (error && !(error instanceof NotFoundException)) {
-                        console.error('Ошибка сканирования:', error);
-                    }
-                }
-            );
-        })
-        .catch((error) => {
-            console.error('Ошибка доступа к камере:', error);
-        });
-
-    // Кнопка для остановки сканирования
-    const stopButton = document.createElement('button');
-    stopButton.textContent = 'Остановить сканирование';
-    scannerElement.appendChild(stopButton);
-
-    stopButton.addEventListener('click', () => {
-        codeReader.reset();
-        console.log('Сканирование остановлено');
-    });
+Quagga.onDetected((data) => {
+    console.log('Считан код:', data.codeResult.code);
+    alert(`Результат: ${data.codeResult.code}`);
 });
