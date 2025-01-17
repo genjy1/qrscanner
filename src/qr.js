@@ -1,4 +1,4 @@
-import { Quagga } from "quagga";
+import Quagga from 'quagga';
 
 Quagga.init(
     {
