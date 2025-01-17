@@ -12,6 +12,7 @@
     "vite": "^6.0.5"
   },
   "dependencies": {
-    "@zxing/library": "^0.21.3"
+    "@zxing/library": "^0.21.3",
+    "quagga": "^0.6.16"
   }
 }
