@@ -1,5 +1,7 @@
 import Quagga from 'quagga';
 
+const resultWrapper = document.querySelector('#result')
+
 Quagga.init(
     {
         inputStream: {
@@ -16,6 +18,7 @@ Quagga.init(
     (err) => {
         if (err) {
             console.error('Ошибка инициализации Quagga:', err);
+            resultWrapper.textContent = err;
             return;
         }
         console.log('Quagga инициализирован');
