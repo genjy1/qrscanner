@@ -1,4 +1,4 @@
 import './style.css'
+import './qr.js'
 
 
-document.querySelector('#app').innerHTML = '<div id="scanner"></div>'

@@ -1,4 +1,4 @@
-import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/+esm';
+import { BrowserMultiFormatReader } from '@zxing/library';
 
 window.addEventListener('DOMContentLoaded', () => {
 
