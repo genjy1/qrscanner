@@ -1,11 +1,11 @@
-export async function startBarcodeScanner(videoElement, resultElement) {
+export async function startBarcodeScanner(videoElement, resultElement, formatElement) {
     if (!('BarcodeDetector' in window)) {
         console.error('Barcode Detection API не поддерживается в этом браузере.');
         resultElement.textContent = 'API не поддерживается.';
         return;
     }
 
-    resultElement.textContent = await BarcodeDetector.getSupportedFormats();
+    formatElement.textContent = await BarcodeDetector.getSupportedFormats();
 
     const barcodeDetector = new BarcodeDetector({
         formats: ['data_matrix'], // Распознавание DataMatrix

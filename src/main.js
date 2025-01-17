@@ -4,8 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoElement = document.querySelector('#video');
     const resultElement = document.querySelector('#result');
     const startButton = document.querySelector('#startScan');
+    const formatElement = document.querySelector('.format')
 
     startButton.addEventListener('click', () => {
-        startBarcodeScanner(videoElement, resultElement);
+        startBarcodeScanner(videoElement, resultElement, formatElement);
     });
 });
