@@ -5,11 +5,18 @@ export async function startBarcodeScanner(videoElement, resultElement, formatEle
         return;
     }
 
-    formatElement.textContent = await BarcodeDetector.getSupportedFormats();
+    // Проверка поддерживаемых форматов
+    const supportedFormats = await BarcodeDetector.getSupportedFormats();
+    formatElement.textContent = `Поддерживаемые форматы: ${supportedFormats.join(', ')}`;
 
-    const barcodeDetector = new BarcodeDetector({
-        formats: ['data_matrix'], // Распознавание DataMatrix
-    });
+    if (!supportedFormats.includes('data_matrix')) {
+        console.error('DataMatrix не поддерживается вашим браузером.');
+        resultElement.textContent = 'DataMatrix не поддерживается.';
+        return;
+    }
+
+    // Инициализация BarcodeDetector
+    const barcodeDetector = new BarcodeDetector({ formats: ['data_matrix'] });
 
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -19,15 +26,37 @@ export async function startBarcodeScanner(videoElement, resultElement, formatEle
         videoElement.srcObject = stream;
         videoElement.play();
 
-        // Начинаем сканирование
+        videoElement.onloadedmetadata = () => {
+            console.log('Видео загружено:', videoElement.videoWidth, videoElement.videoHeight);
+        };
+
+        videoElement.onerror = (err) => {
+            console.error('Ошибка воспроизведения видео:', err);
+        };
+
+        // Цикл сканирования
         while (true) {
-            const barcodes = await barcodeDetector.detect(videoElement);
-            if (barcodes.length > 0) {
-                resultElement.textContent = `Распознан код: ${barcodes[0].rawValue}`;
-                console.log('Распознан код:', barcodes[0]);
-                break; // Прерываем после первого найденного кода
+            try {
+                const barcodes = await barcodeDetector.detect(videoElement);
+                console.log('Обнаруженные коды:', barcodes);
+
+                if (barcodes.length > 0) {
+                    resultElement.textContent = `Распознан код: ${barcodes[0].rawValue}`;
+                    console.log('Распознан код:', barcodes[0]);
+
+                    // Остановить видеопоток
+                    const stream = videoElement.srcObject;
+                    if (stream) {
+                        const tracks = stream.getTracks();
+                        tracks.forEach((track) => track.stop());
+                    }
+                    break; // Завершить цикл
+                }
+            } catch (err) {
+                console.error('Ошибка распознавания:', err);
             }
-            await new Promise((resolve) => setTimeout(resolve, 100)); // Пауза между проверками
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
     } catch (error) {
         console.error('Ошибка работы камеры:', error);
