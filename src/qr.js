@@ -9,17 +9,27 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const formats = [BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX];
+    if (!resultWrapper) {
+        console.error('Элемент #result не найден.');
+        return;
+    }
+
+    // Указываем форматы для чтения (QR-код и DataMatrix)
+    const formats = [BarcodeFormat.DATA_MATRIX, BarcodeFormat.QR_CODE];
     const hints = new Map();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
 
-    const codeReader = new BrowserMultiFormatReader();
+    // Инициализация сканера
+    const codeReader = new BrowserMultiFormatReader(hints);
 
+    // Настройки камеры
     const constraints = {
-        video: { facingMode: 'environment' },
+        video: { facingMode: 'environment' }, // Используем заднюю камеру
     };
 
-    navigator.mediaDevices.getUserMedia(constraints)
+    // Запуск видеопотока
+    navigator.mediaDevices
+        .getUserMedia(constraints)
         .then((stream) => {
             const videoElement = document.createElement('video');
             videoElement.style.width = '100%';
@@ -29,17 +39,32 @@ window.addEventListener('DOMContentLoaded', () => {
             videoElement.play();
             scannerElement.appendChild(videoElement);
 
-            codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
-                if (result) {
-                    console.log('Распознанный код:', result.text);
-                    resultWrapper.textContent = `Результат: ${result.text}`;
+            // Начало декодирования видеопотока
+            codeReader.decodeFromVideoDevice(
+                null,
+                videoElement,
+                (result, error) => {
+                    if (result) {
+                        console.log('Считан код:', result.text);
+                        resultWrapper.textContent = `Результат: ${result.text}`;
+                    }
+                    if (error && !(error instanceof NotFoundException)) {
+                        console.error('Ошибка сканирования:', error);
+                    }
                 }
-                if (error && !(error instanceof zxing.NotFoundException)) {
-                    console.error('Ошибка сканирования:', error);
-                }
-            }, hints);
+            );
         })
         .catch((error) => {
             console.error('Ошибка доступа к камере:', error);
         });
+
+    // Кнопка для остановки сканирования
+    const stopButton = document.createElement('button');
+    stopButton.textContent = 'Остановить сканирование';
+    scannerElement.appendChild(stopButton);
+
+    stopButton.addEventListener('click', () => {
+        codeReader.reset();
+        console.log('Сканирование остановлено');
+    });
 });
