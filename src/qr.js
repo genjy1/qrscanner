@@ -1,6 +1,10 @@
 import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/+esm';
 
 window.addEventListener('DOMContentLoaded', () => {
+
+    console.log('init');
+    
+
     const scannerElement = document.querySelector('#scanner');
     const startButton = document.createElement('button');
     const stopButton = document.createElement('button');
