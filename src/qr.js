@@ -14,7 +14,6 @@ window.addEventListener('DOMContentLoaded', () => {
     hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
 
     const codeReader = new BrowserMultiFormatReader();
-    codeReader.setHints(hints);
 
     const constraints = {
         video: { facingMode: 'environment' },
@@ -26,7 +25,7 @@ window.addEventListener('DOMContentLoaded', () => {
             videoElement.style.width = '100%';
             videoElement.style.height = '100%';
             videoElement.srcObject = stream;
-            videoElement.setAttribute('playsinline', true);
+            videoElement.setAttribute('playsinline', true); // Отключение полноэкранного режима на iOS
             videoElement.play();
             scannerElement.appendChild(videoElement);
 
@@ -38,7 +37,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (error && !(error instanceof zxing.NotFoundException)) {
                     console.error('Ошибка сканирования:', error);
                 }
-            });
+            }, hints);
         })
         .catch((error) => {
             console.error('Ошибка доступа к камере:', error);
